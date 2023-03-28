@@ -4,7 +4,7 @@ import sys
 long_description = open('README.rst', 'r').read()
 
 
-setup(name='idl_parser',
+setup(name='idl-parser',
       version='0.0.16',
       url = 'http://www.sugarsweetrobotics.com/',
       author = 'ysuga',
@@ -28,4 +28,22 @@ setup(name='idl_parser',
         ],
       test_suite = "tests.module_test.suite",
       #package_dir = {'': 'src'}
+    )
+
+setup(name='idl2st4dds',
+      version='0.0.1',
+      author = 'Frank Forster',
+      author_email = 'frank.forster@siemens.com',
+      url = 'https://code.siemens.com/oie-jupiter/product/dds4s7plcapp/dds4iec/idl2st',
+      description = 'ST language bindings for DDS API',
+      packages = ["idl2st4dds"],
+      install_requires=[
+          'airspeed',
+          'idl-parser'
+      ],
+      entry_points={
+        "console_scripts": [
+          "idl2st4dds=idl2st4dds.createbindings:main"
+        ]
+      }
     )

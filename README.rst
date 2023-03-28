@@ -78,11 +78,12 @@ How to install
 Copyright
 ------------
 
-- author: Yuki Suga
+This project has components licensed under the following licenses:
 
-- copyright: Yuki Suga @ ssr.tokyo
+- GPLv3
+- SISL-1.4
 
-- license: GPLv3
+For details, see debian/copyright.
 
 .. |Travis Build Status| image:: https://travis-ci.org/sugarsweetrobotics/idl_parser.svg?branch=master
    :target: https://travis-ci.org/sugarsweetrobotics/idl_parser

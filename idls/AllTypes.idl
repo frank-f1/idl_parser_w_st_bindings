@@ -1,0 +1,15 @@
+struct AllTypes
+{
+    string name; //@key
+    uint8 a;
+    short b;
+    unsigned short c;
+    long d;
+    unsigned long e;
+    long long f;
+    unsigned long long g;
+    float h;
+    double i;
+    boolean j;
+};//@Extensibility EXTENSIBLE_EXTENSIBILITY 
+

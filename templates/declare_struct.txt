@@ -1,0 +1,29 @@
+## Name is the name of the struct
+## base_class the base class which can be empty
+## name and type are self-explanatory
+#set ( $hash = "#")
+TYPE $name## 
+#if( "$base_class" != "" )
+ EXTENDS $base_class##
+#end
+:
+    STRUCT
+#foreach( $member in $members )##
+#if( $member.type=="STRING" )
+        $member.name: $member.type:=STRING#'';
+#elseif ($member.type=="REAL" or $member.type=="LREAL")
+        $member.name: $member.type:=0;
+#elseif ($member.type=="BOOL")
+        $member.name: $member.type:=TRUE;
+#elseif ($member.is_int)
+        $member.name: $member.type:=##
+$member.type##
+$hash##
+0;
+#else
+        $member.name: $member.type;
+#end
+#end
+    END_STRUCT;
+END_TYPE
+

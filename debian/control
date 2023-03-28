@@ -1,0 +1,29 @@
+Source: idl-parser
+Maintainer: Felix Moessbauer <felix.moessbauer@siemens.com>
+Section: misc
+Priority: optional
+Standards-Version: 4.6.1.0
+Build-Depends:
+ debhelper-compat (=12),
+ dh-python,
+ python3-pytest <!nocheck>,
+ libpython3-all-dev,
+ python3-all-dev:any,
+ python3-setuptools,
+ python3-airspeed,
+
+Package: python3-idl-parser
+Architecture: all
+Depends:
+ ${python3:Depends}, ${misc:Depends}
+Description: Very simple OMG IDL (Interface Definition Language) parser.
+ This parses IDL files and outputs intermediate class objects.
+
+Package: python3-idl2st4dds
+Architecture: all
+Depends:
+ python3-idl-parser (=${binary:Version}),
+ ${python3:Depends}, ${misc:Depends}
+Description: Generator to create language bindings for ST DDS API
+ This generator reads DDS IDL files and generates the language
+ specific interface bindings for the DDS ST API.

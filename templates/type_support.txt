@@ -1,0 +1,134 @@
+## TypeCode is the id of the struct
+## name is the name of the struct
+## DDS_Type is the DDS internal type code, e.g.  DDS_TK_LONG
+## is_keyed is a flag indicating
+#set ( $hash = "#")
+#set ( $quote= "'")
+
+NAMESPACE Siemens.Jupiter.UserProgram.DDS
+
+CLASS $name##
+TypeSupport EXTENDS TypeSupportBase
+
+	VAR PRIVATE
+		memberList : ARRAY[1..$count,1..3] OF STRING := [##
+#foreach( $member in $members )##
+'$member.name', '$member.type', '$member.keyed'##
+#if ($member.is_not_last)
+, ##
+#end##
+#end##
+];
+		memberCount : UINT := UINT$hash$count;
+	END_VAR
+
+	METHOD PUBLIC OVERRIDE getNumberOfFields: UINT
+		getNumberOfFields:=memberCount;
+	END_METHOD
+
+	METHOD PUBLIC OVERRIDE getField
+		VAR_INPUT
+			index: UINT;
+		END_VAR
+		VAR_IN_OUT
+			memberName: STRING;
+			memberType: STRING;
+			isKey :     STRING;
+		END_VAR
+		// \todo: error handling, we could check the index if we wanted to
+		memberName:=memberList[index, 1];
+		memberType:=memberList[index, 2];
+		isKey:=memberList[index, 3];                
+	END_METHOD
+
+	// Takes a $name instance and publishes it via DDS
+	METHOD PUBLIC write : retValEnum
+		VAR_IN_OUT
+			dds_client : DDS_IEC_API;
+		END_VAR
+		VAR_INPUT
+			data : $name;			
+		END_VAR
+		write := retValEnum#FAILURE;
+		IF isInitCompleted THEN
+			dds_client.write(dataWriterID:=dataWriterID, typeID:=typeID, keyValString:=this.serialize(dds_client, data), retVal=>api_out);
+			 write := retValEnum#SUCCESS;
+		END_IF;
+	END_METHOD
+
+	// Receives a $name instance via DDS 
+	METHOD PUBLIC take : retValEnum
+		VAR_IN_OUT
+			dds_client : DDS_IEC_API;
+		END_VAR
+		VAR_OUTPUT
+			data : $name;			
+		END_VAR
+		take := retValEnum#FAILURE;
+		IF isInitCompleted THEN
+			dds_client.take(dataReaderID:=dataReaderID, typeID:=typeID, keyValString=>readSample, retVal=>api_out);
+			data := this.deserialize(dds_client := dds_client, valString:= readSample);			
+			take := retValEnum#SUCCESS;
+		END_IF;
+	END_METHOD
+
+	METHOD PUBLIC serialize : String
+		VAR_IN_OUT
+			dds_client : DDS_IEC_API;     // the api			
+		END_VAR
+		VAR_INPUT
+			instance: $name;
+		END_VAR
+	
+		VAR
+			key_val_str: String:=String#'';
+			tmp_str: String:=String#'';
+			val_str: String;
+		END_VAR
+		#foreach( $member in $members )
+		tmp_str := String$hash'$member.name:$member.type:';
+		val_str := toString(instance.$member.name);
+		key_val_str := System.Strings.Concat(key_val_str, tmp_str, val_str);
+		key_val_str := System.Strings.Concat(key_val_str, ';');
+		#end
+
+		serialize := key_val_str;
+	END_METHOD
+
+	METHOD PUBLIC deserialize : $name
+		VAR_IN_OUT
+			dds_client : DDS_IEC_API;     // the api
+		END_VAR
+		VAR_INPUT
+			valString : String;
+		END_VAR
+		VAR
+			key_val_str: String;
+			val: $name;
+			len: INT;
+			pos: INT;
+			tmp_str: String;			
+			tmp: INT;
+		END_VAR
+		key_val_str:=valString;
+#foreach( $member in $members )
+		len := System.Strings.LengthOf(String$hash'$member.name:$member.type:');
+		pos := System.Strings.PositionOf(key_val_str, ';');
+		tmp := pos-len;
+		tmp := -1+tmp;
+		tmp_str:=System.Strings.Substring(key_val_str, 1+len, tmp);
+		val.$member.name:=to##
+$member.short_type##
+(tmp_str);
+
+		// Remove the consumed part
+		len := System.Strings.LengthOf(key_val_str);
+		tmp := len-pos;
+		tmp := tmp;
+		key_val_str:=System.Strings.Substring(key_val_str, 1+pos, tmp);
+
+#end
+		deserialize:=val;
+	END_METHOD	
+END_CLASS
+END_NAMESPACE

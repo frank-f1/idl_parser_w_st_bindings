@@ -1,0 +1,103 @@
+/******
+ * This IDL is for test
+ */
+
+const short GLOBAL_CONSTANT = 44;
+
+module first_module {
+    const double MY_CONSTANT = 77.7;
+};
+
+module my_module {
+  struct my_struct1 {
+    long long_member;
+  };
+
+
+  struct my_struct2 {
+    my_struct1 my_struct_member;
+  };
+
+  struct my_struct3 {
+    octet octet_member;
+    char char_member;
+    wchar wchar_member;
+    string string_member;
+    unsigned short ushort_member;
+    short short_member;
+    unsigned long ulong_member;
+    long long_member;
+    float float_member;
+    double double_member;
+  };
+
+  enum my_union1_descriminator_kind
+  {
+      descriminator_unknown,
+      descriminator_ulonglong,
+      descriminator_longlong,
+      descriminator_double,
+      descriminator_string,
+      descriminator_kind_count
+  };
+
+  union my_union1 switch( my_union1_descriminator_kind )
+  {
+      case descriminator_unknown:
+      case descriminator_kind_count:
+      case descriminator_ulonglong:
+          unsigned long long      ull_value;
+      case descriminator_longlong:
+          long long               ll_value;
+      case descriminator_double:
+          double                  d_value;
+      case descriminator_string:
+          sequence<char>          str_value;
+  };
+
+  typedef octet my_byte;
+  typedef my_struct1 my_struct_typedef;
+
+  interface my_interface1 {
+    long method1(in long long_arg, out double double_arg, inout short short_arg);
+    my_struct1 method2(in my_struct1 my_struct1_arg, out my_struct2 my_struct2_arg);
+  };
+
+  typedef sequence<double> DoubleSeq;
+
+  enum my_enum1 {
+    data1,
+    data2,
+    data3
+  };
+
+  const long value1 = -1;
+  const unsigned long value2 = 4;
+
+  typedef double Matrix34[3][4];
+
+  typedef unsigned long  Matrix3456[3][4][5][6];
+
+  /* 'MY_CONSTANT' defined diffenently in each module. Ensure with tests
+   * that the value of the 'MY_CONSTANT' is correctly associated with this
+   * module during parsing process.
+   */
+  const short MY_CONSTANT = 10;
+
+  struct another_struct {
+    double another_struct_array1[ MY_CONSTANT ];
+    short another_struct_array2[
+      11
+      ];
+    short another_struct_array3[GLOBAL_CONSTANT];
+    sequence< my_byte > another_struct_seq1;
+    sequence<
+      long
+      > another_struct_seq2;
+  };
+
+};
+
+module lase_module {
+    const double MY_CONSTANT = 99.9;
+};

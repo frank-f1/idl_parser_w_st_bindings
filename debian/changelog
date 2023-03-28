@@ -1,0 +1,56 @@
+idl-parser (0.1.2) unstable; urgency=medium
+
+  [ Felix Moessbauer ]
+  * debian: fix description
+  * debian: add misc:Depends
+  * debian: add license information
+  * debian: test using pytest
+
+  [ Frank Forster ]
+  * Fix template loading issue
+
+  [ Felix Moessbauer ]
+  * debian: fix nocheck spec
+  * debian: install templates and examples
+
+ -- Felix Moessbauer <felix.moessbauer@siemens.com>  Mon, 11 Jul 2022 16:05:24 +0200
+
+idl-parser (0.1.1) unstable; urgency=medium
+
+  [ Frank Forster ]
+  * Feat default program
+
+  [ Felix Moessbauer ]
+  * debian: add standards-version
+
+ -- Felix Moessbauer <felix.moessbauer@siemens.com>  Tue, 28 Jun 2022 13:44:20 +0200
+
+idl-parser (0.1.0) unstable; urgency=medium
+
+  [ Felix Moessbauer ]
+  * Initial release. (Closes: #XXXXXX)
+  * chore: move generator into dedicated package
+  * chore: add packaging for idl2st4dds tool
+  * style: make style flake8 compliant
+
+  [ Frank Forster ]
+  * Feat support keys
+
+  [ Felix Moessbauer ]
+  * chore: add missing dependencies
+
+  [ Frank Forster ]
+  * All the changes
+  * Mostly formatting
+  * Formatting and a bug fix
+  * Added support for a few missing types
+  * Bug fix
+  * Add default values for all elementary struct members
+  * Default value for string is now ' ' (this is required by the PlcApp for now)
+  * Roll back...
+
+  [ Felix Moessbauer ]
+  * debian: add source format spec
+  * debian: add support for git buildpackage
+
+ -- Felix Moessbauer <felix.moessbauer@siemens.com>  Thu, 23 Jun 2022 16:51:31 +0200

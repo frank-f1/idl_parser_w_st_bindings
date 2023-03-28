@@ -6,6 +6,7 @@ from idl_parser.type import IDLType
 from . import multimodule_test
 from . import generalization_test
 from . import invalid_idl_test
+from . import generation_test
 __nocoveralls = False # This might be redundant but just in case ...
 try:
     from coveralls import Coveralls
@@ -20,7 +21,7 @@ except:
 ''')
     __nocoveralls = True
 
-idl_path = 'idls/basic_module_test.idl'
+idl_path = 'tests/idls/basic_module_test.idl'
 
 class BasicTestFunctions(unittest.TestCase):
     def setUp(self):
@@ -309,4 +310,5 @@ def suite():
     suite.addTests(unittest.makeSuite(multimodule_test.MultiModuleTestFunctions))
     suite.addTests(unittest.makeSuite(generalization_test.GeneralizationTestFunctions))
     suite.addTests(unittest.makeSuite(invalid_idl_test.InvalidIDLTestFunctions))
+    suite.addTests(unittest.makeSuite(generation_test.GenerationTestFunctions))
     return suite

@@ -1,0 +1,56 @@
+## Name is the name of the struct
+## base_class the base class which can be empty
+## name and type are self-explanatory
+
+using Siemens.Jupiter.Communication.DDS;
+using Siemens.Jupiter.UserProgram.DDS;
+
+PROGRAM main
+	VAR
+		out_dds_client : DDS_IEC_API;
+#foreach( $dt in $user_types)##
+		$dt.name##
+_support : $dt.name##
+TypeSupport;
+		$dt.name##
+_type_name : String := String#'##
+$dt.name##
+_TypeName';
+		$dt.name##
+_topic_name : String := String#'##
+$dt.name##
+_TopicName';
+#end
+#foreach( $cmd in $init_commands)##
+		$cmd
+#end
+	END_VAR
+	
+#foreach( $dt in $user_types)##
+	IF $dt.name##
+_support.initialize(dds_client := out_dds_client, typeName:= ##
+$dt.name##
+_type_name, topicName:=##
+$dt.name##
+_topic_name) = retValEnum#SUCCESS THEN
+		$dt.name##
+_support.write(dds_client:=out_dds_client, data:=##
+ $dt.name##
+_write_sample);
+	END_IF;
+
+	IF $dt.name##
+_support.initialize(dds_client := out_dds_client, typeName:= ##
+$dt.name##
+_type_name, topicName:=##
+$dt.name##
+_topic_name) = retValEnum#SUCCESS THEN
+		$dt.name##
+_support.take(dds_client:=out_dds_client, data=>##
+ $dt.name##
+_take_sample);
+	END_IF;
+
+
+#end
+END_PROGRAM

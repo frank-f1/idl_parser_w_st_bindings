@@ -1,31 +1,33 @@
 import os, sys
 import re
 
-from . import  module, token_buffer
+from . import module, token_buffer
 from . import type as idl_type
-from . import exception 
+from . import exception
 
 
-class ConsoleTracker():
+class ConsoleTracker:
     def __init__(self):
         self._indent = 0
         pass
 
     def write(self, *args):
-        sys.stdout.write('  ' * self._indent)
+        sys.stdout.write("  " * self._indent)
         sys.stdout.write(*args)
 
     def indent(self):
-        self._indent = self._indent+1
+        self._indent = self._indent + 1
 
     def deindent(self):
-        self._indent = self._indent-1
-        if self._indent < 0: self._indent = 0
+        self._indent = self._indent - 1
+        if self._indent < 0:
+            self._indent = 0
+
 
 logger = ConsoleTracker()
 
-class IDLParser():
 
+class IDLParser:
     def __init__(self, idl_dirs=[], verbose=False):
         self._global_module = module.IDLModule()
         self._dirs = idl_dirs
@@ -38,7 +40,7 @@ class IDLParser():
 
     def is_primitive(self, name, except_string=False):
         if except_string:
-            if name == 'string' or name == 'wstring':
+            if name == "string" or name == "wstring":
                 return False
         return idl_type.is_primitive(name)
 
@@ -48,53 +50,62 @@ class IDLParser():
 
     def prepare_input(self, data):
         from re import compile, UNICODE, MULTILINE
+
         flags = UNICODE | MULTILINE
 
-        pattern = compile('\[[ \n]+', flags)
-        data = pattern.sub('[', data)
+        # Replace leading space and newline [ \n]
+        pattern = compile("\[[ \n]+", flags)
+        data = pattern.sub("[", data)
 
-        pattern = compile('[ \n]+\]', flags)
-        data = pattern.sub(']', data)
+        # Replace trailing space and newline
+        pattern = compile("[ \n]+\]", flags)
+        data = pattern.sub("]", data)
 
-        pattern = compile('\<[ \n]+', flags)
-        data = pattern.sub('<', data)
+        # Same here, newlines
+        pattern = compile("\<[ \n]+", flags)
+        data = pattern.sub("<", data)
 
-        pattern = compile('[ \n]+\>', flags)
-        data = pattern.sub('>', data)
+        pattern = compile("[ \n]+\>", flags)
+        data = pattern.sub(">", data)
 
         return data
 
     def load(self, input_str, include_dirs=[], filepath=None):
         self._dirs = self._dirs + include_dirs
         input_str = self.prepare_input(input_str)
-        lines = [(i+1, filepath, l) for i, l in enumerate(input_str.split('\n'))]
+        lines = [(i + 1, filepath, l) for i, l in enumerate(input_str.split("\n"))]
         self.parse_lines(lines, filepath=filepath)
         return self._global_module
 
     def parse(self, idls=[], idl_dirs=[], except_files=[]):
-        """ Parse IDL files. Result of parsing can be accessed via global_module property.
+        """Parse IDL files. Result of parsing can be accessed via global_module property.
         :param idls: List of IDL files. Must be fullpath.
         :param idl_dirs: List of directory which contains target IDL files. Must be fullpath.
         :param except_files: List of IDL files that should be ignored. Do not have to use fullpath.
         :returns: None
         """
         if self._verbose:
-            logger.write('parse(\n')
-            logger.write('  idls=%s\n' % idls)
+            logger.write("parse(\n")
+            logger.write("  idls=%s\n" % idls)
             logger.indent()
-        self.for_each_idl(self.parse_idl, except_files=except_files, idls=idls, idl_dirs=idl_dirs)
-        if self._verbose: logger.deindent()
+        self.for_each_idl(
+            self.parse_idl, except_files=except_files, idls=idls, idl_dirs=idl_dirs
+        )
+        if self._verbose:
+            logger.deindent()
 
     def parse_idl(self, idl_path):
         if idl_path in self._parsed_files:
             if self._verbose:
-                logger.write('Parsing IDL(%s) but ALREADY PARSED.\n' % idl_path)
+                logger.write("Parsing IDL(%s) but ALREADY PARSED.\n" % idl_path)
             return
             pass
-        if self._verbose: 
-            logger.write('Parsing IDL(%s)\n' % idl_path) #sys.stdout.write(' - Parsing IDL (%s)\n' % idl_path)
+        if self._verbose:
+            logger.write(
+                "Parsing IDL(%s)\n" % idl_path
+            )  # sys.stdout.write(' - Parsing IDL (%s)\n' % idl_path)
             logger.indent()
-        f = open(idl_path, 'r')
+        f = open(idl_path, "r")
         lines = []
         line_number = 1
         for line in f:
@@ -103,12 +114,13 @@ class IDLParser():
 
         self.parse_lines(lines)
 
-        if self._verbose: 
+        if self._verbose:
             logger.deindent()
-            logger.write('Parsed IDL (%s)\n' % idl_path)        
+            logger.write("Parsed IDL (%s)\n" % idl_path)
         self._parsed_files.append(idl_path)
 
     def parse_lines(self, lines, filepath=None):
+        lines = self._save_extensions(lines)
         lines = self._clear_comments(lines)
         lines = self._paste_include(lines)
         lines = self._clear_ifdef(lines)
@@ -119,15 +131,16 @@ class IDLParser():
     def includes(self, idl_path):
         included_filepaths = []
         included_filenames = []
-        f = open(idl_path, 'r')
-        lines = []
+        f = open(idl_path, "r")
+        
         for line in f:
-            if line.find('#include') >= 0:
+            if line.find("#include") >= 0:
                 if line.find('"') >= 0:
-                    file = line[line.find('"')+1:line.rfind('"')].strip()
-                elif line.find('<') >= 0:
-                    file = line[line.find('<')+1:line.rfind('>')].strip()
+                    file = line[line.find('"') + 1 : line.rfind('"')].strip()
+                elif line.find("<") >= 0:
+                    file = line[line.find("<") + 1 : line.rfind(">")].strip()
                 included_filenames.append(file)
+
         def get_fullpath(idl_path):
             if os.path.basename(idl_path) in included_filenames:
                 included_filepaths.append(idl_path)
@@ -139,9 +152,8 @@ class IDLParser():
 
         return included_filepaths
 
-
     def for_each_idl(self, func, idl_dirs=[], except_files=[], idls=[], find_all=False):
-        """ Parse IDLs and apply function.
+        """Parse IDLs and apply function.
         :param func: Function. IDL file fullpath will be passed to the function.
         :param idls: List of IDL files. Must be fullpath.
         :param idl_dirs: List of directory which contains target IDL files. Must be fullpath.
@@ -154,15 +166,15 @@ class IDLParser():
         basenames_ = []
         for idl_dir in idl_dirs:
             for f in os.listdir(idl_dir):
-                if f.endswith('.idl'):
+                if f.endswith(".idl"):
                     if not f in except_files:
                         path = os.path.join(idl_dir, f)
                         if not f in basenames_:
-                            if not( path in idls_ ):
+                            if not (path in idls_):
                                 idls_.append(path)
                                 basenames_.append(os.path.basename(path))
 
-        #idls_ = idls_ + idls
+        # idls_ = idls_ + idls
 
         if find_all:
             idls_ = idls_ + idls
@@ -174,71 +186,74 @@ class IDLParser():
             func(f)
 
     def _find_idl(self, filename, apply_func, idl_dirs=[]):
-        if self._verbose: 
-            logger.write('Finding %s\n' % filename)
+        if self._verbose:
+            logger.write("Finding %s\n" % filename)
             logger.indent()
 
         global retval
         retval = None
+
         def func(filepath):
             if os.path.basename(filepath) == filename:
                 if self._verbose:
-                    logger.write('Found %s\n' % filename)
+                    logger.write("Found %s\n" % filename)
                 global retval
                 retval = apply_func(filepath)
 
         self.for_each_idl(func, idl_dirs=idl_dirs, find_all=True)
-        if self._verbose: logger.deindent()
+        if self._verbose:
+            logger.deindent()
         return retval
 
     def _paste_include(self, lines):
         output_lines = []
         for line_number, file_name, line in lines:
-            output_line = ''
-            if line.startswith('#include'):
+            output_line = ""
+            if line.startswith("#include"):
+
                 def _include_paste(filepath):
                     return filepath
 
-                if line.find('"') >= 7:
-                    filename = line[line.find('"')+1 : line.rfind('"')]
-                    if self._verbose: logger.write('Find Includes %s\n' % filename)
-                    p = self._find_idl(filename, _include_paste)
-                    if p is None:
-                        if self._verbose:logger.write(' # IDL (%s) can not be found.\n' % filename)
-                        raise exception.IDLCanNotFindException
-                    if self._verbose: logger.write('IDL Found (%s). Parsing\n'% filename)
-                    self.parse_idl(idl_path = p)
-                    if self._verbose: logger.write('Including IDL Parsing End.\n')
+                found_quotation = line.find('"') >= 7
+                found_less_than = line.find("<") >= 7
+                if not found_quotation and not found_less_than:
+                    raise exception.InvalidIDLSyntaxError(
+                        line_number, file_name, "Invalid #include syntax"
+                    )
+                n_char = '"' if found_quotation else ">"
 
-                    inc_lines = []
-                    f = open(p, 'r')
-                    ln = 1
-                    for l in f:
-                        inc_lines.append((ln, p, l))
-                        ln = ln + 1
-                    inc_lines = self._clear_comments(inc_lines)
-                    inc_lines = self._paste_include(inc_lines)
-                    output_lines = output_lines + inc_lines
+                filename = line[line.find('"') + 1 : line.rfind('"')]
+                if self._verbose:
+                    logger.write("Find Includes %s\n" % filename)
+                p = self._find_idl(filename, _include_paste)
+                if p is None:
+                    if self._verbose:
+                        logger.write(" # IDL (%s) can not be found.\n" % filename)
+                    raise exception.IDLCanNotFindException
 
-                elif line.find('<') >= 7:
-                    filename = line[line.find('<')+1 : line.rfind('>')]
-                    if self._verbose: sys.stdout.write(' -- Includes %s\n' % filename)
-                    p = self._find_idl(filename, _include_paste)
-                    if p is None:
-                        if self._verbose:sys.stdout.write(' # IDL (%s) can not be found.\n' % filename)
-                        raise exception.IDLCanNotFindException
-                    inc_lines = []
+                # \todo
+                # In the original code, the include file is parsed AND appended
+                # Effectively, it is then parsed twice which causes a number of
+                # problems
+                # We could either parse and not append
+                # or append and NOT parse
+                # or do both and handle duplicate definitions
+                # Also handle infinite loops with mutual includes
+                # right now we do not parse here...
 
-                    self.parse_idl(idl_path = p)
+                # if self._verbose: logger.write('IDL Found (%s). Parsing\n'% filename)
+                # self.parse_idl(idl_path = p)
+                # if self._verbose: logger.write('Including IDL Parsing End.\n')
 
-                    f = open(p, 'r')
-                    ln = 1
-                    for l in f:
-                        inc_lines.append((ln, p, l))
-                        ln = ln + 1
-                    inc_lines = self._clear_comments(inc_lines)
-                    inc_lines = self._paste_include(inc_lines)
-                    output_lines = output_lines + inc_lines
+                inc_lines = []
+                f = open(p, "r")
+                ln = 1
+                for l in f:
+                    inc_lines.append((ln, p, l))
+                    ln = ln + 1
+                inc_lines = self._clear_comments(inc_lines)
+                inc_lines = self._paste_include(inc_lines)
+                output_lines = output_lines + inc_lines
 
             else:
                 output_line = line
@@ -247,49 +262,73 @@ class IDLParser():
 
         return output_lines
 
-
-
     def _clear_comments(self, lines):
         output_lines = []
         in_comment = False
 
         for line_number, file_name, line in lines:
             line = line.strip()
-            output_line = ''
-            if line.find('//') >= 0:
-                line = line[:line.find('//')]
+            output_line = ""
+            if line.find("//") >= 0:
+                line = line[: line.find("//")]
 
-            for token in line.split(' '):
+            for token in line.split(" "):
 
-                if in_comment and token.find('*/') >= 0:
+                if in_comment and token.find("*/") >= 0:
                     in_comment = False
-                    output_line = output_line + ' ' + token[token.find('*/')+2:].strip()
+                    output_line = (
+                        output_line + " " + token[token.find("*/") + 2 :].strip()
+                    )
 
                 elif in_comment:
                     continue
 
-                elif token.startswith('//'):
-                    break # ignore this line
+                elif token.startswith("//"):
+                    break  # ignore this line
 
-                elif token.find('/*') >= 0:
-                    in_comment = True
-                    output_line = output_line + ' ' + token[0: token.find('/*')]
+                elif token.find("/*") >= 0:
+                    # /* xxx */ in one line
+                    # \todo: order
+                    remainder = token[token.find("/*") :]
+                    if remainder.find("*/") < 0:
+                        in_comment = True
+                    output_line = output_line + " " + token[0 : token.find("/*")]
                 else:
-                    if token.find('{') >= 0:
-                        token = token.replace('{', ' { ')
-                    if token.find(':') >= 0:
-                        token = re.sub(r'([a-zA-Z0-9_]{1}):([a-zA-Z0-9_]{1}|$)', r'\1 : \2', token)
-                    if token.find(';') >= 0:
-                        token = token.replace(';', ' ;')
-                    if token.find('(') >= 0:
-                        token = token.replace('(', ' ( ')
-                    token = token.replace(',', ' , ')
-                    token = token.replace(')', ' ) ')
-                    token = token.replace('}', ' } ')
-                    output_line = output_line + ' ' + token.strip()
+                    if token.find("{") >= 0:
+                        token = token.replace("{", " { ")
+                    if token.find(":") >= 0:
+                        token = re.sub(
+                            r"([a-zA-Z0-9_]{1}):([a-zA-Z0-9_]{1}|$)", r"\1 : \2", token
+                        )
+                    if token.find(";") >= 0:
+                        token = token.replace(";", " ;")
+                    if token.find("(") >= 0:
+                        token = token.replace("(", " ( ")
+                    token = token.replace(",", " , ")
+                    token = token.replace(")", " ) ")
+                    token = token.replace("}", " } ")
+                    output_line = output_line + " " + token.strip()
             if len(output_line.strip()) > 0:
-                output_lines.append((line_number, file_name, output_line.strip() + '\n'))
+                output_lines.append(
+                    (line_number, file_name, output_line.strip() + "\n")
+                )
 
+        return output_lines
+
+    def _save_extensions(self, lines):
+        # we support extensions such as @key. They are stored as comments. We
+        # have to move them out of the comments into the code section, otherwise
+        # they will be removed in the _clear_comments step
+        # \todo move this to a suitable place such as a configuration file
+        output_lines = []
+        keys = ["@key"]
+        for line_number, file_name, line in lines:
+            out_line = None
+            for key in keys:
+                if key in line and ";" in line:
+                    # We found one of the keys, move the key in front of the comment
+                    line = line[: line.find(";")] + " " + key + ";"
+            output_lines.append((line_number, file_name, line))
         return output_lines
 
     def _clear_ifdef(self, lines):
@@ -297,25 +336,26 @@ class IDLParser():
         def_tokens = []
         global offset
         offset = 0
+
         def _parse(flag):
             global offset
             while offset < len(lines):
                 line_number, file_name, line = lines[offset]
-                if line.startswith('#define'):
-                    def_token = line.split(' ')[1]
+                if line.startswith("#define"):
+                    def_token = line.split(" ")[1]
                     def_tokens.append(def_token)
                     offset = offset + 1
-                elif line.startswith('#ifdef'):
-                    def_token = line.split(' ')[1]
+                elif line.startswith("#ifdef"):
+                    def_token = line.split(" ")[1]
                     offset = offset + 1
                     _parse(def_token in def_tokens)
 
-                elif line.startswith('#ifndef'):
-                    def_token = line.split(' ')[1]
+                elif line.startswith("#ifndef"):
+                    def_token = line.split(" ")[1]
                     offset = offset + 1
                     _parse(not def_token in def_tokens)
 
-                elif line.startswith('#endif'):
+                elif line.startswith("#endif"):
                     offset = offset + 1
                     return
 
@@ -327,28 +367,27 @@ class IDLParser():
         _parse(True)
         return output_lines
 
-
     def generate_constructor_python(self, typ):
-        code = ''
+        code = ""
         if typ.is_sequence:
-            code = code + '[]'
+            code = code + "[]"
         if typ.is_array:
-            code = code + '['
+            code = code + "["
             for i in range(typ.size):
                 code = code + self.generate_constructor_python(typ.inner_type)
-                if i != typ.size-1:
-                    code = code + ', '
-            code = code + ']'
+                if i != typ.size - 1:
+                    code = code + ", "
+            code = code + "]"
         elif typ.is_primitive:
-            code = code + '0'
+            code = code + "0"
         elif typ.is_typedef:
             code = code + self.generate_constructor_python(typ.type)
         elif typ.is_struct:
-            code = code + typ.full_path + '('
+            code = code + typ.full_path + "("
             for m in typ.members:
                 if m.type.is_primitive:
-                    code = code + self.generate_constructor_python(m.type) + ', '
+                    code = code + self.generate_constructor_python(m.type) + ", "
                 else:
-                    code = code + self.generate_constructor_python(m.type.obj) + ', '
-            code = code[:-2] + ')'
-        return code.replace('::', '.')
+                    code = code + self.generate_constructor_python(m.type.obj) + ", "
+            code = code[:-2] + ")"
+        return code.replace("::", ".")

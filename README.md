@@ -5,8 +5,14 @@
 
 ## Description 
 
-OMG IDL file parser. This library just parse IDL files, and output intermidiate type objects.
+IDL to ST (structured text) converter
 
+Converts an IDL file to matching ST (structured text) code. The ST code complies with the IEC 61131-3 standard. 
+
+This work is based on the OMG IDL file parser (https://github.com/sugarsweetrobotics/idl_parser), a tool 
+which reads IDL files and converts them into intermediate type objects. This open-source parser has been coupled with a ST code generator.
+
+To run from a source tree, use `python3 -m idl2st4dds.createbindings %source %destination` where source should be a valid idl file and the result is written to the file specified by destination.
 ## Example
 ```
 """
@@ -69,7 +75,10 @@ for m in timedDoubleSeq.members:
     sudo pip install idl_parser
 
 ## Copyright
-* author: Yuki Suga
-* copyright: Yuki Suga @ ssr.tokyo
-* license: GPLv3
 
+This project has components licensed under the following licenses:
+
+- GPLv3
+- SISL-1.4
+
+For details, see `debian/copyright`.

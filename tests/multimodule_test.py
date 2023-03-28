@@ -17,7 +17,7 @@ except:
 ''')
     __nocoveralls = True
 
-idl_path = 'idls/multi_module_test.idl'
+idl_path = 'tests/idls/multi_module_test.idl'
 
 class MultiModuleTestFunctions(unittest.TestCase):
     def setUp(self):
@@ -72,7 +72,7 @@ class MultiModuleTestFunctions(unittest.TestCase):
 
     def test_distinguish_same_struct_different_module(self):
         parser_ = parser.IDLParser()
-        with open('idls/multi_module_test.idl', 'r') as idlf:
+        with open(idl_path, 'r') as idlf:
             m = parser_.load(idlf.read(), include_dirs=['idls'])
             
             self.assertEqual(m.name,'__global__')

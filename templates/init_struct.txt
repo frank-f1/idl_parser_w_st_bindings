@@ -1,0 +1,25 @@
+#set ( $hash = "#")
+$name##
+_write_sample : $name := (##
+#foreach( $member in $members )##
+#if( $member.short_type=="STRING" )
+$member.name := STRING#''##
+#elseif ($member.type=="REAL" or $member.type=="LREAL")
+$member.name := 0##
+#elseif ($member.type=="BOOL")
+$member.name := TRUE##
+#elseif ($member.is_int)
+$member.name := ##
+$member.type##
+$hash##
+0##
+#else
+$member.name := unsupported##
+#end
+#if ($member.is_not_last)
+, ##
+#end##
+#end
+);
+		$name##
+_take_sample : $name;
